@@ -38,7 +38,7 @@ If you use VS Code, install the "Live Server" extension and click "Go Live" in t
 ## Project Structure
 
 ```
-inside-modern-llms/
+langsplain/
 ├── index.html          # Main HTML structure
 ├── style.css           # All styles (dark mode, responsive)
 ├── app.js              # Main application logic
