@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Langsplain - Interactive Transformer Explainer</title>
+    <meta name="description" content="Learn how Large Language Models work with interactive visualizations of transformer architecture, attention mechanisms, and mixture of experts.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect fill='%230a0a0a' width='32' height='32' rx='4'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='%2300d4ff'>◈</text></svg>">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="nav-header">
+        <div class="nav-logo">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="32" rx="6" fill="#141414"/>
+                <path d="M16 6L22 10V14L16 18L10 14V10L16 6Z" stroke="#00d4ff" stroke-width="1.5" fill="none"/>
+                <path d="M16 18L22 22V26L16 30L10 26V22L16 18Z" stroke="#a855f7" stroke-width="1.5" fill="none"/>
+                <circle cx="16" cy="18" r="2" fill="#00d4ff"/>
+            </svg>
+            <span>Langsplain</span>
+        </div>
+
+        <nav class="nav-links">
+            <a href="#" class="nav-link active" data-view="home">Home</a>
+            <a href="#" class="nav-link" data-view="glossary">Glossary</a>
+            <a href="#" class="nav-link" data-view="about">About</a>
+            <button class="tour-start-btn">Start Guided Tour</button>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Home View -->
+        <div id="home-view" class="view active">
+            <section class="diagram-section">
+                <div class="diagram-container" id="diagram-container">
+                    <!-- SVG diagram rendered by D3.js -->
+                </div>
+
+                <div class="demo-buttons">
+                    <button class="demo-btn" data-demo="attention">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                        </svg>
+                        Attention Demo
+                    </button>
+                    <button class="demo-btn" data-demo="moe">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                            <path d="M12 8v8M8 12h8"/>
+                        </svg>
+                        MOE Demo
+                    </button>
+                    <button class="demo-btn" data-demo="sampling">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 20h18"/>
+                            <path d="M5 20v-8"/>
+                            <path d="M9 20v-12"/>
+                            <path d="M13 20v-6"/>
+                            <path d="M17 20v-10"/>
+                            <path d="M21 20v-4"/>
+                        </svg>
+                        Sampling Demo
+                    </button>
+                    <button class="demo-btn" data-demo="kvcache">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M3 9h18"/>
+                            <path d="M9 3v18"/>
+                            <path d="M15 9v12"/>
+                        </svg>
+                        KV Cache Demo
+                    </button>
+                    <button class="demo-btn" data-demo="flow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"/>
+                            <path d="M12 5l7 7-7 7"/>
+                        </svg>
+                        Animate Flow
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Glossary View -->
+        <div id="glossary-view" class="view">
+            <div class="glossary-container">
+                <div class="glossary-header">
+                    <h1>Glossary</h1>
+                    <p>Key terms and concepts in transformer-based LLMs</p>
+                </div>
+
+                <div class="glossary-search">
+                    <input type="text" id="glossary-search" placeholder="Search terms...">
+                </div>
+
+                <div class="glossary-list" id="glossary-list">
+                    <!-- Rendered by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- About View -->
+        <div id="about-view" class="view">
+            <div class="about-container">
+                <div class="about-header">
+                    <h1>About This Project</h1>
+                </div>
+
+                <div class="about-content">
+                    <p>
+                        <strong>Langsplain</strong> is an interactive educational tool designed to help
+                        you understand how modern Large Language Models work under the hood.
+                    </p>
+
+                    <h2>What You'll Learn</h2>
+                    <ul>
+                        <li>How text is tokenized and converted to embeddings</li>
+                        <li>The mechanics of self-attention and why it's powerful</li>
+                        <li>How transformer blocks process information layer by layer</li>
+                        <li>What Mixture of Experts (MOE) is and why it matters</li>
+                        <li>How LLMs generate text one token at a time</li>
+                    </ul>
+
+                    <h2>Interactive Features</h2>
+                    <ul>
+                        <li><strong>Guided Tour:</strong> A step-by-step walkthrough of the architecture</li>
+                        <li><strong>Clickable Diagram:</strong> Click any component to learn more</li>
+                        <li><strong>Attention Demo:</strong> Visualize how tokens attend to each other</li>
+                        <li><strong>MOE Demo:</strong> See how routing works in expert models</li>
+                    </ul>
+
+                    <h2>Further Learning</h2>
+                    <ul>
+                        <li><a href="https://arxiv.org/abs/1706.03762" target="_blank">Attention Is All You Need</a> - The original transformer paper</li>
+                        <li><a href="https://jalammar.github.io/illustrated-transformer/" target="_blank">The Illustrated Transformer</a> - Visual guide by Jay Alammar</li>
+                        <li><a href="https://arxiv.org/abs/2101.03961" target="_blank">Switch Transformers</a> - MOE at scale</li>
+                        <li><a href="https://karpathy.ai/zero-to-hero.html" target="_blank">Neural Networks: Zero to Hero</a> - Andrej Karpathy's course</li>
+                    </ul>
+
+                    <h2>Technical Notes</h2>
+                    <p>
+                        This visualization uses simplified, toy-sized models for demonstration purposes.
+                        Real LLMs have much larger dimensions (e.g., 4096-8192 vs our 64) and more layers
+                        (32-96 vs our 3). The attention patterns shown are computed on actual (tiny) weights
+                        but won't match production model behavior.
+                    </p>
+
+                    <h2>Credits</h2>
+                    <p>
+                        Built with vanilla JavaScript, D3.js for visualizations, and Anime.js for animations.
+                        No framework dependencies - just clean, educational code.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Info Panel (Right Sidebar) -->
+    <aside id="info-panel" class="info-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">Component</h2>
+            <button class="panel-close" aria-label="Close panel">&times;</button>
+        </div>
+        <div class="panel-content">
+            <div class="simple-explanation">
+                <!-- Beginner-friendly explanation -->
+            </div>
+            <details class="technical-details">
+                <summary>Show Technical Details</summary>
+                <div class="technical-content">
+                    <!-- Technical explanation with formulas -->
+                </div>
+            </details>
+        </div>
+    </aside>
+
+    <!-- Attention Demo Modal -->
+    <div id="attention-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Attention Visualization</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="attention-demo-content">
+                    <!-- Rendered by AttentionDemoUI -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOE Demo Modal -->
+    <div id="moe-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Mixture of Experts</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="moe-demo-content">
+                    <!-- Rendered by MOEDemoUI -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sampling Demo Modal -->
+    <div id="sampling-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Sampling Strategies</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="sampling-demo-content">
+                    <!-- Rendered by SamplingDemoUI -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KV Cache Demo Modal -->
+    <div id="kvcache-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>KV Cache Visualization</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="kvcache-demo-content">
+                    <!-- Rendered by KVCacheDemoUI -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Script -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
