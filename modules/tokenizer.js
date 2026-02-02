@@ -56,16 +56,18 @@ const VOCABULARY = [
     'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
     'my', 'your', 'his', 'its', 'our', 'their', 'mine', 'yours', 'hers', 'ours', 'theirs',
     'not', 'no', 'yes', 'all', 'some', 'any', 'none', 'each', 'every', 'both',
-    'cat', 'dog', 'bird', 'fish', 'tree', 'house', 'car', 'book', 'word', 'world',
+    'cat', 'dog', 'bird', 'fish', 'tree', 'house', 'car', 'book', 'word', 'world', 'fox',
     'sat', 'mat', 'hat', 'rat', 'bat', 'fat', 'flat', 'chat', 'that',
-    'hello', 'world', 'good', 'bad', 'big', 'small', 'new', 'old', 'young',
+    'hello', 'world', 'good', 'bad', 'big', 'small', 'new', 'old', 'young', 'quick', 'brown', 'lazy',
     'man', 'woman', 'child', 'day', 'night', 'time', 'year', 'way', 'thing',
     'love', 'like', 'want', 'know', 'think', 'see', 'look', 'make', 'go', 'come',
-    'take', 'get', 'give', 'find', 'tell', 'ask', 'use', 'try', 'leave', 'call',
+    'take', 'get', 'give', 'find', 'tell', 'ask', 'use', 'try', 'leave', 'call', 'jump', 'jumps', 'over',
     'model', 'data', 'learn', 'train', 'test', 'input', 'output', 'layer', 'network',
     'attention', 'transformer', 'token', 'embed', 'vector', 'matrix', 'weight',
+    // Code keywords
+    'print', 'function', 'return', 'var', 'let', 'const',
     // Common punctuation as tokens
-    '.', ',', '!', '?', "'", '"', '-', ':', ';', '(', ')', '[', ']',
+    '.', ',', '!', '?', "'", '"', '-', ':', ';', '(', ')', '[', ']', '{', '}',
     // Numbers
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     // Letters (for character fallback)

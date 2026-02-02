@@ -33,15 +33,83 @@ const CONFIG = {
     ]
 };
 
+// Token categories for semantic routing
+const TOKEN_CATEGORIES = {
+    grammar: new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need']),
+    facts: new Set(['cat', 'dog', 'bird', 'fish', 'tree', 'house', 'car', 'book', 'fox', 'man', 'woman', 'child', 'day', 'night', 'world']),
+    math: new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '=']),
+    code: new Set(['print', 'function', 'return', 'var', 'let', 'const', '(', ')', '[', ']', '{', '}', ':', ';']),
+    creative: new Set(['quick', 'brown', 'good', 'bad', 'big', 'small', 'new', 'old', 'young', 'lazy', 'love', 'like', 'hello']),
+    logic: new Set(['and', 'or', 'nor', 'not', 'if', 'then', 'else', 'when', 'why', 'how', 'what', 'which']),
+    language: new Set(['i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their']),
+    general: new Set(['"', "'", '.', ',', '!', '?', '-'])
+};
+
+// Category order maps to expert indices (0-7)
+const CATEGORY_ORDER = ['grammar', 'facts', 'math', 'code', 'creative', 'logic', 'language', 'general'];
+
+// Secondary affinities: some tokens should boost multiple experts
+const SECONDARY_AFFINITIES = {
+    3: [[6, 0.8]], // Code → Language (code often involves variable names)
+    4: [[6, 0.6]], // Creative → Language (creative text is linguistic)
+    6: [[0, 0.5]]  // Language → Grammar (pronouns need grammar)
+};
+
+// Semantic bias strength (added to logits for primary expert)
+const SEMANTIC_BIAS_STRENGTH = 2.5;
+
 // Router weights (fixed for consistency)
 const routerWeights = randomMatrix(CONFIG.embedDim, CONFIG.numExperts, 42424242);
 
 /**
- * Route a single token embedding to experts
+ * Get the expert category for a token based on its text
+ * @param {string} tokenText - Token text to classify
+ * @returns {number} Expert index (0-7)
  */
-function routeToken(embedding) {
+function getTokenExpertCategory(tokenText) {
+    const text = tokenText.toLowerCase();
+
+    // Single letters go to General expert
+    if (text.length === 1 && /[a-z]/.test(text)) {
+        return 7; // General
+    }
+
+    // Check each category
+    for (let i = 0; i < CATEGORY_ORDER.length; i++) {
+        const category = CATEGORY_ORDER[i];
+        if (TOKEN_CATEGORIES[category].has(text)) {
+            return i; // Return expert index
+        }
+    }
+
+    // Default to General
+    return 7;
+}
+
+/**
+ * Route a single token embedding to experts
+ * @param {Float32Array} embedding - Token embedding vector
+ * @param {string} tokenText - Optional token text for semantic biasing
+ */
+function routeToken(embedding, tokenText = null) {
     // Compute router logits
     const logits = matvec(transpose(routerWeights), embedding);
+
+    // Apply semantic biasing if token text is provided
+    if (tokenText) {
+        const primaryExpert = getTokenExpertCategory(tokenText);
+
+        // Boost primary expert
+        logits[primaryExpert] += SEMANTIC_BIAS_STRENGTH;
+
+        // Apply secondary affinities
+        const affinities = SECONDARY_AFFINITIES[primaryExpert];
+        if (affinities) {
+            affinities.forEach(([expertIdx, boost]) => {
+                logits[expertIdx] += boost;
+            });
+        }
+    }
 
     // Softmax to get probabilities
     const probs = softmax(logits);
@@ -82,7 +150,7 @@ export function runMOEDemo(text) {
     const routingResults = embeddings.map((emb, i) => ({
         token: tokens[i],
         tokenIndex: i,
-        routing: routeToken(emb)
+        routing: routeToken(emb, tokens[i].text)
     }));
 
     // Compute load balancing statistics
@@ -143,7 +211,7 @@ export class MOEDemoUI {
                     <label for="moe-input">Enter text (max 10 tokens):</label>
                     <div class="input-row">
                         <input type="text" id="moe-input"
-                               value="The quick brown fox jumps"
+                               value="print(&quot;The quick brown fox&quot;)"
                                placeholder="Enter some text..."
                                maxlength="100">
                         <button id="moe-run-btn" class="primary-btn">Route</button>
