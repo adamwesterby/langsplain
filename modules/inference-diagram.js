@@ -100,6 +100,45 @@ const BASE_LAYOUT = {
     height: 600
 };
 
+const MOBILE_BREAKPOINT = 768;
+const MOBILE_LAYOUT = {
+    boxInset: 16,
+    innerTopPadding: 52,
+    innerBoxHeight: 44,
+    innerGap: 12,
+    kvHeight: 70,
+    loopBottomPadding: 16,
+    detokenizeGap: 24
+};
+
+const DEFAULT_COMPONENT_STATE = {
+    autoregressiveLoop: {
+        y: COMPONENTS.autoregressiveLoop.y,
+        height: COMPONENTS.autoregressiveLoop.height
+    },
+    logits: {
+        y: COMPONENTS.logits.y,
+        height: COMPONENTS.logits.height
+    },
+    sampling: {
+        y: COMPONENTS.sampling.y,
+        height: COMPONENTS.sampling.height
+    },
+    stopCondition: {
+        y: COMPONENTS.stopCondition.y,
+        height: COMPONENTS.stopCondition.height
+    },
+    kvCache: {
+        y: COMPONENTS.kvCache.y,
+        height: COMPONENTS.kvCache.height,
+        sublabel: COMPONENTS.kvCache.sublabel
+    },
+    detokenize: {
+        y: COMPONENTS.detokenize.y,
+        height: COMPONENTS.detokenize.height
+    }
+};
+
 let svg = null;
 let onComponentClick = null;
 let currentHighlight = null;
@@ -190,6 +229,42 @@ function addDefs(svgEl) {
 }
 
 function getInferenceLayout(width) {
+    if (width <= MOBILE_BREAKPOINT) {
+        const mobileMain = getCenteredBox(width, 460, 20);
+        const mainX = mobileMain.boxX;
+        const mainWidth = mobileMain.boxWidth;
+        const loopY = DEFAULT_COMPONENT_STATE.autoregressiveLoop.y;
+        const logitsY = loopY + MOBILE_LAYOUT.innerTopPadding;
+        const samplingY = logitsY + MOBILE_LAYOUT.innerBoxHeight + MOBILE_LAYOUT.innerGap;
+        const stopY = samplingY + MOBILE_LAYOUT.innerBoxHeight + MOBILE_LAYOUT.innerGap;
+        const kvY = stopY + MOBILE_LAYOUT.innerBoxHeight + MOBILE_LAYOUT.innerGap;
+        const decodeHeight = (kvY + MOBILE_LAYOUT.kvHeight + MOBILE_LAYOUT.loopBottomPadding) - loopY;
+        const detokenizeY = loopY + decodeHeight + MOBILE_LAYOUT.detokenizeGap;
+        const kvWidth = clamp(mainWidth - 32, 150, Math.max(150, mainWidth - 12));
+        const kvX = mainX + (mainWidth - kvWidth) / 2;
+        const innerX = mainX + MOBILE_LAYOUT.boxInset;
+        const innerWidth = mainWidth - MOBILE_LAYOUT.boxInset * 2;
+
+        return {
+            mode: 'mobile-linear',
+            mainX,
+            mainWidth,
+            innerX,
+            innerWidth,
+            logitsY,
+            samplingY,
+            stopY,
+            decodeHeight,
+            kvX,
+            kvY,
+            kvWidth,
+            kvHeight: MOBILE_LAYOUT.kvHeight,
+            loopLaneX: clamp(mainX + mainWidth + 6, mainX + mainWidth + 2, mainX + mainWidth + 10),
+            detokenizeY,
+            height: detokenizeY + DEFAULT_COMPONENT_STATE.detokenize.height + 30
+        };
+    }
+
     const bounds = getHorizontalBounds(width, 8);
     const sidePadding = 20;
     const laneGap = 36;
@@ -226,7 +301,7 @@ function getInferenceLayout(width) {
             kvWritePortX,
             kvReadPortX: clamp(kvX + kvWidth * kvReadPortRatio, kvX + 2, kvX + kvWidth - 2),
             decodeInX: clamp(mainRight - decodeInsetRight, bounds.minX + 20, bounds.maxX - 20),
-            decodeInY: COMPONENTS.sampling.y + COMPONENTS.sampling.height / 2,
+            decodeInY: DEFAULT_COMPONENT_STATE.sampling.y + DEFAULT_COMPONENT_STATE.sampling.height / 2,
             detokenizeY: BASE_LAYOUT.detokenizeY,
             height: BASE_LAYOUT.height
         };
@@ -236,9 +311,9 @@ function getInferenceLayout(width) {
     const mainWidth = narrowMain.boxWidth;
     const mainX = narrowMain.boxX;
     const mainRight = mainX + mainWidth;
-    const kvY = COMPONENTS.autoregressiveLoop.y + COMPONENTS.autoregressiveLoop.height + 10;
+    const kvY = DEFAULT_COMPONENT_STATE.autoregressiveLoop.y + DEFAULT_COMPONENT_STATE.autoregressiveLoop.height + 10;
     const kvX = clamp(width - kvWidth - 20, bounds.minX + 4, bounds.maxX - kvWidth);
-    const detokenizeY = kvY + COMPONENTS.kvCache.height + 26;
+    const detokenizeY = kvY + DEFAULT_COMPONENT_STATE.kvCache.height + 26;
     const loopLaneX = clamp(mainRight + laneInset + 2, mainRight + 4, bounds.maxX - 2);
     const kvWriteLaneX = clamp(kvX + kvWidth - kvWritePortInsetNarrow, mainRight + 8, bounds.maxX - 2);
 
@@ -254,13 +329,42 @@ function getInferenceLayout(width) {
         kvWritePortX: clamp(kvWriteLaneX, kvX + 2, kvX + kvWidth - 2),
         kvReadPortX: clamp(kvX + kvWidth * kvReadPortRatio, kvX + 2, kvX + kvWidth - 2),
         decodeInX: clamp(mainRight - decodeInsetRight, bounds.minX + 20, bounds.maxX - 20),
-        decodeInY: COMPONENTS.sampling.y + COMPONENTS.sampling.height / 2,
+        decodeInY: DEFAULT_COMPONENT_STATE.sampling.y + DEFAULT_COMPONENT_STATE.sampling.height / 2,
         detokenizeY,
         height: detokenizeY + COMPONENTS.detokenize.height + 30
     };
 }
 
 function applyLayout(layout) {
+    COMPONENTS.autoregressiveLoop.y = DEFAULT_COMPONENT_STATE.autoregressiveLoop.y;
+    COMPONENTS.autoregressiveLoop.height = DEFAULT_COMPONENT_STATE.autoregressiveLoop.height;
+    COMPONENTS.logits.y = DEFAULT_COMPONENT_STATE.logits.y;
+    COMPONENTS.logits.height = DEFAULT_COMPONENT_STATE.logits.height;
+    COMPONENTS.sampling.y = DEFAULT_COMPONENT_STATE.sampling.y;
+    COMPONENTS.sampling.height = DEFAULT_COMPONENT_STATE.sampling.height;
+    COMPONENTS.stopCondition.y = DEFAULT_COMPONENT_STATE.stopCondition.y;
+    COMPONENTS.stopCondition.height = DEFAULT_COMPONENT_STATE.stopCondition.height;
+    COMPONENTS.kvCache.y = DEFAULT_COMPONENT_STATE.kvCache.y;
+    COMPONENTS.kvCache.height = DEFAULT_COMPONENT_STATE.kvCache.height;
+    COMPONENTS.kvCache.sublabel = DEFAULT_COMPONENT_STATE.kvCache.sublabel;
+    COMPONENTS.detokenize.y = DEFAULT_COMPONENT_STATE.detokenize.y;
+    COMPONENTS.detokenize.height = DEFAULT_COMPONENT_STATE.detokenize.height;
+
+    if (layout.mode === 'mobile-linear') {
+        COMPONENTS.autoregressiveLoop.height = layout.decodeHeight;
+        COMPONENTS.logits.y = layout.logitsY;
+        COMPONENTS.logits.height = MOBILE_LAYOUT.innerBoxHeight;
+        COMPONENTS.sampling.y = layout.samplingY;
+        COMPONENTS.sampling.height = MOBILE_LAYOUT.innerBoxHeight;
+        COMPONENTS.stopCondition.y = layout.stopY;
+        COMPONENTS.stopCondition.height = MOBILE_LAYOUT.innerBoxHeight;
+        COMPONENTS.kvCache.y = layout.kvY;
+        COMPONENTS.kvCache.height = layout.kvHeight;
+        COMPONENTS.kvCache.sublabel = 'Written in prefill; read each decode step';
+        COMPONENTS.detokenize.y = layout.detokenizeY;
+        return;
+    }
+
     COMPONENTS.kvCache.y = layout.kvY;
     COMPONENTS.detokenize.y = layout.detokenizeY;
 }
@@ -272,7 +376,10 @@ function renderDiagram(width, layout) {
 
     renderContainer(layout.mainX, layout.mainWidth);
     renderInnerLoopBoxes(layout);
-    renderSideCache(layout);
+
+    if (layout.mode !== 'mobile-linear') {
+        renderSideCache(layout);
+    }
 
     renderMainBox('detokenize', layout.mainX, layout.mainWidth);
     renderMainArrows(layout);
@@ -325,6 +432,45 @@ function renderInnerLoopBoxes(layout) {
     const width = layout.mainWidth;
     const centerX = x + width / 2;
 
+    if (layout.mode === 'mobile-linear') {
+        renderBox('logits', COMPONENTS.logits, layout.innerX, layout.innerWidth);
+        renderBox('sampling', COMPONENTS.sampling, layout.innerX, layout.innerWidth);
+        renderBox('stopCondition', COMPONENTS.stopCondition, layout.innerX, layout.innerWidth);
+        renderBox('kvCache', COMPONENTS.kvCache, layout.kvX, layout.kvWidth);
+
+        svg.append('line')
+            .attr('x1', centerX)
+            .attr('y1', COMPONENTS.logits.y + COMPONENTS.logits.height + 2)
+            .attr('x2', centerX)
+            .attr('y2', COMPONENTS.sampling.y - 2)
+            .attr('stroke', '#606060')
+            .attr('stroke-width', 2)
+            .attr('marker-end', 'url(#inference-arrow)');
+
+        svg.append('line')
+            .attr('x1', centerX)
+            .attr('y1', COMPONENTS.sampling.y + COMPONENTS.sampling.height + 2)
+            .attr('x2', centerX)
+            .attr('y2', COMPONENTS.stopCondition.y - 2)
+            .attr('stroke', '#606060')
+            .attr('stroke-width', 2)
+            .attr('marker-end', 'url(#inference-arrow)');
+
+        const innerRight = layout.innerX + layout.innerWidth;
+        const loopStartX = innerRight - 4;
+
+        drawConnectorPath([
+            { x: loopStartX, y: COMPONENTS.stopCondition.y + COMPONENTS.stopCondition.height / 2 },
+            { x: layout.loopLaneX, y: COMPONENTS.stopCondition.y + COMPONENTS.stopCondition.height / 2 },
+            { x: layout.loopLaneX, y: COMPONENTS.logits.y + COMPONENTS.logits.height / 2 },
+            { x: loopStartX, y: COMPONENTS.logits.y + COMPONENTS.logits.height / 2 }
+        ], {
+            stroke: '#00d4ff',
+            dashed: true
+        });
+        return;
+    }
+
     renderBox('logits', COMPONENTS.logits, x + 20, width - 40);
     renderBox('sampling', COMPONENTS.sampling, x + 20, width - 40);
     renderBox('stopCondition', COMPONENTS.stopCondition, x + 20, width - 40);
@@ -362,7 +508,6 @@ function renderInnerLoopBoxes(layout) {
     });
 
 }
-
 function renderSideCache(layout) {
     renderBox('kvCache', COMPONENTS.kvCache, layout.kvX, layout.kvWidth);
 
