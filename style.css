@@ -1322,18 +1322,30 @@ button {
 
 .tour-footer {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
 }
 
 .tour-progress {
     color: var(--text-muted);
     font-size: 0.8rem;
+    text-align: center;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 999px;
+    background: rgba(0, 212, 255, 0.08);
 }
 
 .tour-buttons {
     display: flex;
     gap: 8px;
+    width: 100%;
+    justify-content: center;
 }
 
 .tour-btn {
@@ -1701,6 +1713,10 @@ button {
         left: 16px !important;
         bottom: 100px;
         top: auto !important;
+    }
+
+    .tour-progress {
+        font-size: 0.75rem;
     }
 }
 

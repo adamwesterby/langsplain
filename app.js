@@ -423,14 +423,6 @@ function setupTourEventBridge() {
     window.addEventListener('tour:clearHighlight', () => {
         currentDiagramModule?.clearHighlight?.();
     });
-
-    window.addEventListener('tour:showMOE', () => {
-        if (currentSection === 'architecture') {
-            if (!architectureDiagram.isMOEMode()) {
-                architectureDiagram.toggleMOE();
-            }
-        }
-    });
 }
 
 function switchSection(section, { force = false, afterRender = null } = {}) {

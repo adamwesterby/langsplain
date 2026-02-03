@@ -28,15 +28,6 @@ const TOUR_STEPS = [
         position: 'right'
     },
     {
-        section: 'architecture',
-        target: '#ffn-block .toggle-indicator',
-        componentKey: 'moe',
-        title: 'Architecture: MOE Toggle',
-        content: 'This toggle previews how sparse expert routing can replace dense FFN computation.',
-        position: 'right',
-        action: 'showMOE'
-    },
-    {
         section: 'training',
         target: '#training-data',
         componentKey: 'trainingData',
@@ -86,11 +77,11 @@ const TOUR_STEPS = [
     },
     {
         section: 'inference',
-        target: '.demo-btn[data-demo="generation"]',
+        target: '.demo-buttons',
         componentKey: null,
-        title: 'Try the New Demos',
-        content: 'Open the generation, sampling, and KV cache demos to explore inference behavior interactively.',
-        position: 'left',
+        title: 'Click around and explore!',
+        content: 'Click on the buttons at the bottom of each page to run interactive demos illustrating each concept. Click on individual components within the diagrams to view more information about the component.',
+        position: 'center',
         isFinal: true
     }
 ];
@@ -121,11 +112,11 @@ class Tour {
             <h3 class="tour-title"></h3>
             <p class="tour-content"></p>
             <div class="tour-footer">
-                <span class="tour-progress"></span>
                 <div class="tour-buttons">
                     <button class="tour-btn tour-prev">Previous</button>
                     <button class="tour-btn tour-next">Next</button>
                 </div>
+                <span class="tour-progress"></span>
             </div>
         `;
         document.body.appendChild(this.tooltip);
@@ -176,10 +167,14 @@ class Tour {
 
         this.currentStep = index;
         const step = this.steps[index];
+        const sectionLabel = this.getSectionLabel(step.section);
+        const sectionProgress = this.getSectionProgress(index, step.section);
+        const transitionNotice = this.getTransitionNotice(index, step.section);
+        const content = transitionNotice ? `${transitionNotice} ${step.content}` : step.content;
 
         this.tooltip.querySelector('.tour-title').textContent = step.title;
-        this.tooltip.querySelector('.tour-content').textContent = step.content;
-        this.tooltip.querySelector('.tour-progress').textContent = `Step ${index + 1} of ${this.steps.length}`;
+        this.tooltip.querySelector('.tour-content').textContent = content;
+        this.tooltip.querySelector('.tour-progress').textContent = `${sectionLabel} • ${sectionProgress.index}/${sectionProgress.total}`;
 
         const prevBtn = this.tooltip.querySelector('.tour-prev');
         const nextBtn = this.tooltip.querySelector('.tour-next');
@@ -208,10 +203,6 @@ class Tour {
                     window.dispatchEvent(new CustomEvent('tour:clearHighlight'));
                 }
 
-                if (step.action === 'showMOE') {
-                    window.dispatchEvent(new CustomEvent('tour:showMOE'));
-                }
-
                 if (this.onStepChange) {
                     this.onStepChange(index, step);
                 }
@@ -219,9 +210,48 @@ class Tour {
         });
     }
 
+    getSectionLabel(section) {
+        if (!section) return 'Tour';
+        return section.charAt(0).toUpperCase() + section.slice(1);
+    }
+
+    getSectionProgress(index, section) {
+        const total = this.steps.filter((step) => step.section === section).length;
+        let currentIndex = 0;
+
+        for (let i = 0; i <= index; i += 1) {
+            if (this.steps[i].section === section) {
+                currentIndex += 1;
+            }
+        }
+
+        return {
+            index: Math.max(1, currentIndex),
+            total: Math.max(1, total)
+        };
+    }
+
+    getTransitionNotice(index, section) {
+        if (index === 0) return '';
+
+        const previousSection = this.steps[index - 1]?.section;
+        if (!section || previousSection === section) return '';
+
+        return `Now entering the ${this.getSectionLabel(section)} section.`;
+    }
+
     positionElements(step) {
-        const target = document.querySelector(step.target);
         const spotlight = this.overlay.querySelector('.tour-spotlight');
+
+        if (step.position === 'center') {
+            this.tooltip.style.left = '50%';
+            this.tooltip.style.top = '50%';
+            this.tooltip.style.transform = 'translate(-50%, -50%)';
+            spotlight.style.display = 'none';
+            return;
+        }
+
+        const target = document.querySelector(step.target);
 
         if (!target) {
             this.tooltip.style.left = '50%';
