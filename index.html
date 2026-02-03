@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Langsplain - Interactive Transformer Explainer</title>
-    <meta name="description" content="Learn how Large Language Models work with interactive visualizations of transformer architecture, attention mechanisms, and mixture of experts.">
+    <meta name="description" content="Learn how LLMs work end-to-end with interactive Architecture, Training, and Inference diagrams and demos.">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,20 +48,50 @@
     <main class="main-container">
         <!-- Home View -->
         <div id="home-view" class="view active">
+            <div class="section-switcher" role="tablist" aria-label="Model learning sections">
+                <button
+                    class="section-tab active"
+                    role="tab"
+                    aria-selected="true"
+                    tabindex="0"
+                    data-section="architecture"
+                >
+                    Architecture
+                </button>
+                <button
+                    class="section-tab"
+                    role="tab"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-section="training"
+                >
+                    Training
+                </button>
+                <button
+                    class="section-tab"
+                    role="tab"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-section="inference"
+                >
+                    Inference
+                </button>
+            </div>
+
             <section class="diagram-section">
                 <div class="diagram-container" id="diagram-container">
                     <!-- SVG diagram rendered by D3.js -->
                 </div>
 
                 <div class="demo-buttons">
-                    <button class="demo-btn" data-demo="attention">
+                    <button class="demo-btn" data-demo="attention" data-sections="architecture">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="3"/>
                             <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
                         </svg>
                         Attention Demo
                     </button>
-                    <button class="demo-btn" data-demo="moe">
+                    <button class="demo-btn" data-demo="moe" data-sections="architecture">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="3" width="7" height="7" rx="1"/>
                             <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -71,7 +101,31 @@
                         </svg>
                         MOE Demo
                     </button>
-                    <button class="demo-btn" data-demo="sampling">
+                    <button class="demo-btn" data-demo="flow" data-sections="architecture">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"/>
+                            <path d="M12 5l7 7-7 7"/>
+                        </svg>
+                        Animate Flow
+                    </button>
+                    <button class="demo-btn hidden" data-demo="gradient" data-sections="training">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19l6-6 4 4 6-10"/>
+                            <circle cx="10" cy="13" r="1"/>
+                            <circle cx="14" cy="17" r="1"/>
+                        </svg>
+                        Gradient Demo
+                    </button>
+                    <button class="demo-btn hidden" data-demo="loss" data-sections="training">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19h16"/>
+                            <rect x="5" y="12" width="2" height="7"/>
+                            <rect x="10" y="9" width="2" height="10"/>
+                            <rect x="15" y="6" width="2" height="13"/>
+                        </svg>
+                        Loss Demo
+                    </button>
+                    <button class="demo-btn hidden" data-demo="sampling" data-sections="inference">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 20h18"/>
                             <path d="M5 20v-8"/>
@@ -82,7 +136,7 @@
                         </svg>
                         Sampling Demo
                     </button>
-                    <button class="demo-btn" data-demo="kvcache">
+                    <button class="demo-btn hidden" data-demo="kvcache" data-sections="inference">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="2"/>
                             <path d="M3 9h18"/>
@@ -91,12 +145,13 @@
                         </svg>
                         KV Cache Demo
                     </button>
-                    <button class="demo-btn" data-demo="flow">
+                    <button class="demo-btn hidden" data-demo="generation" data-sections="inference">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14"/>
-                            <path d="M12 5l7 7-7 7"/>
+                            <path d="M4 12h10"/>
+                            <path d="M10 8l4 4-4 4"/>
+                            <path d="M15 6h5M15 12h5M15 18h5"/>
                         </svg>
-                        Animate Flow
+                        Generation Demo
                     </button>
                 </div>
             </section>
@@ -135,21 +190,22 @@
 
                     <h2>What You'll Learn</h2>
                     <ul>
-                        <li>How text is tokenized and converted to embeddings</li>
-                        <li>The mechanics of self-attention and why it's powerful</li>
-                        <li>How transformer blocks process information layer by layer</li>
-                        <li>What Mixture of Experts (MOE) is and why it matters</li>
-                        <li>How LLMs generate text one token at a time</li>
+                        <li><strong>Architecture:</strong> tokenization, embeddings, attention, FFN/MOE, and output projection</li>
+                        <li><strong>Training:</strong> data preparation, loss optimization, backpropagation, and post-training alignment</li>
+                        <li><strong>Inference:</strong> prefill, KV cache, sampling, decode loops, and stop conditions</li>
                     </ul>
 
                     <h2>Interactive Features</h2>
                     <ul>
-                        <li><strong>Guided Tour:</strong> A step-by-step walkthrough of the architecture</li>
-                        <li><strong>Clickable Diagram:</strong> Click any component to learn more</li>
+                        <li><strong>Guided Tour:</strong> Walkthrough across Architecture, Training, and Inference</li>
+                        <li><strong>Section-Specific Diagrams:</strong> Click any component to open detailed explanations</li>
                         <li><strong>Attention Demo:</strong> Visualize how tokens attend to each other</li>
                         <li><strong>MOE Demo:</strong> See how routing works in expert models</li>
+                        <li><strong>Gradient Demo:</strong> Step through optimization on a 2D loss surface</li>
+                        <li><strong>Loss Demo:</strong> Watch cross-entropy and perplexity change during training</li>
                         <li><strong>Sampling Demo:</strong> Explore temperature, top-k, and top-p effects</li>
                         <li><strong>KV Cache Demo:</strong> Compare cached vs uncached generation cost</li>
+                        <li><strong>Generation Demo:</strong> Step through prefill + autoregressive decode</li>
                     </ul>
 
                     <h2>Further Learning</h2>
@@ -252,6 +308,51 @@
             <div class="modal-body">
                 <div id="kvcache-demo-content">
                     <!-- Rendered by KVCacheDemoUI -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gradient Demo Modal -->
+    <div id="gradient-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Gradient Descent</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="gradient-demo-content">
+                    <!-- Rendered by GradientDemoUI -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loss Demo Modal -->
+    <div id="loss-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Loss and Learning</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="loss-demo-content">
+                    <!-- Rendered by LossDemoUI -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generation Demo Modal -->
+    <div id="generation-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Autoregressive Generation</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="generation-demo-content">
+                    <!-- Rendered by GenerationDemoUI -->
                 </div>
             </div>
         </div>

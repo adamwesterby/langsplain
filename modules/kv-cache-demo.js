@@ -32,6 +32,17 @@ export class KVCacheDemoUI {
     }
 
     /**
+     * Stop any active playback loop
+     */
+    stopPlayback() {
+        this.isPlaying = false;
+        const playText = this.container?.querySelector('#play-text');
+        if (playText) {
+            playText.textContent = this.mode === 'step' ? 'Generate Next' : 'Play All';
+        }
+    }
+
+    /**
      * Initialize the demo UI
      */
     init() {
@@ -197,9 +208,7 @@ export class KVCacheDemoUI {
      */
     async handlePlay() {
         if (this.isPlaying) {
-            this.isPlaying = false;
-            this.container.querySelector('#play-text').textContent =
-                this.mode === 'step' ? 'Generate Next' : 'Play All';
+            this.stopPlayback();
             return;
         }
 
@@ -212,8 +221,7 @@ export class KVCacheDemoUI {
                 await this.sleep(CONFIG.animationSpeed);
             }
 
-            this.isPlaying = false;
-            this.container.querySelector('#play-text').textContent = 'Play All';
+            this.stopPlayback();
         } else {
             if (this.currentStep < CONFIG.maxTokens) {
                 await this.generateNextToken();
@@ -398,7 +406,7 @@ export class KVCacheDemoUI {
      * Reset the demo
      */
     reset() {
-        this.isPlaying = false;
+        this.stopPlayback();
         this.currentStep = 0;
         this.generatedTokens = [];
         this.cache = { keys: [], values: [] };

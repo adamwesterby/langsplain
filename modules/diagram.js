@@ -121,6 +121,7 @@ let svg = null;
 let currentHighlight = null;
 let moeMode = false;
 let onComponentClick = null;
+let resizeHandler = null;
 
 /**
  * Initialize the diagram
@@ -128,8 +129,13 @@ let onComponentClick = null;
  * @param {function} clickHandler - Handler for component clicks
  */
 export function initDiagram(containerId, clickHandler) {
+    destroyDiagram();
+
     onComponentClick = clickHandler;
     const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = '';
     const width = container.clientWidth;
     const height = 620;
 
@@ -179,10 +185,28 @@ export function initDiagram(containerId, clickHandler) {
     renderLayerIndicator(width);
 
     // Handle resize
-    window.addEventListener('resize', () => {
+    resizeHandler = () => {
         const newWidth = container.clientWidth;
         svg.attr('viewBox', `0 0 ${newWidth} ${height}`);
-    });
+    };
+
+    window.addEventListener('resize', resizeHandler);
+}
+
+export function destroyDiagram() {
+    if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+        resizeHandler = null;
+    }
+
+    if (svg) {
+        svg.remove();
+        svg = null;
+    }
+
+    currentHighlight = null;
+    onComponentClick = null;
+    moeMode = false;
 }
 
 /**
@@ -244,7 +268,7 @@ function renderBox(key, comp, x, width) {
         .attr('id', comp.id)
         .attr('data-key', key)
         .attr('cursor', 'pointer')
-        .on('click', () => handleClick(key, comp))
+        .on('click', (event) => handleClick(event, key, comp))
         .on('mouseenter', () => handleHover(key, comp, true))
         .on('mouseleave', () => handleHover(key, comp, false));
 
@@ -393,8 +417,9 @@ function renderLayerIndicator(width) {
 /**
  * Handle component click
  */
-function handleClick(key, comp) {
-    if (comp.hasToggle && event.target.classList.contains('toggle-indicator')) {
+function handleClick(event, key, comp) {
+    const targetClasses = event?.target?.classList;
+    if (comp.hasToggle && (targetClasses?.contains('toggle-indicator') || targetClasses?.contains('toggle-text'))) {
         toggleMOE();
         return;
     }
@@ -585,7 +610,7 @@ export function animateTokenFlow(tokens) {
  * Get component by info key
  */
 export function getComponentByInfoKey(infoKey) {
-    return Object.entries(COMPONENTS).find(([_, comp]) => comp.infoKey === infoKey);
+    return Object.entries(COMPONENTS).find(([_, comp]) => comp.infoKey === infoKey)?.[0] || null;
 }
 
 /**

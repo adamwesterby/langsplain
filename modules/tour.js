@@ -1,82 +1,95 @@
 /**
- * Guided tour state machine
- * Walks users through the transformer architecture
+ * Guided tour state machine across Architecture, Training, and Inference sections.
  */
 
-import { highlightComponent, clearHighlight } from './diagram.js';
-
-// Tour step definitions
 const TOUR_STEPS = [
     {
+        section: 'architecture',
         target: '#input-box',
         componentKey: 'input',
-        title: 'Tokenization',
-        content: 'Text input is first broken into tokens - smaller pieces that the model can understand. Words, subwords, and punctuation each become separate tokens.',
+        title: 'Architecture: Tokenization',
+        content: 'The architecture view starts with tokenized input flowing into embeddings and transformer blocks.',
         position: 'right'
     },
     {
-        target: '#embedding-layer',
-        componentKey: 'embeddings',
-        title: 'Embeddings',
-        content: 'Each token is converted into a vector of numbers (an embedding) that captures its meaning. Positional information is added so the model knows word order.',
-        position: 'right'
-    },
-    {
+        section: 'architecture',
         target: '#attention-block',
         componentKey: 'attention',
-        title: 'Self-Attention',
-        content: 'The attention mechanism lets each token look at all other tokens to understand context. This is the key innovation that makes transformers so powerful!',
-        position: 'right',
-        highlight: true
-    },
-    {
-        target: '#residual-1',
-        componentKey: 'residual1',
-        title: 'Residual + LayerNorm',
-        content: 'Skip connections add the input back to the output, while LayerNorm keeps activations stable. Together they help deep transformer stacks train reliably.',
+        title: 'Architecture: Self-Attention',
+        content: 'Self-attention lets each token condition on prior context under causal masking.',
         position: 'right'
     },
     {
+        section: 'architecture',
         target: '#ffn-block',
         componentKey: 'ffn',
-        title: 'Feed-Forward Network',
-        content: 'Each token passes through a neural network independently. This is where much of the "knowledge" is stored in the model\'s parameters.',
+        title: 'Architecture: FFN / MOE',
+        content: 'After attention, each token passes through FFN-style computation; some models swap this for MOE experts.',
         position: 'right'
     },
     {
-        target: '#transformer-block',
-        componentKey: null,
-        title: 'Layer Stacking',
-        content: 'This entire transformer block is repeated many times. GPT-3 has 96 layers, while smaller models might have 12-32. More layers = more complex reasoning.',
-        position: 'right'
-    },
-    {
-        target: '#output-layer',
-        componentKey: 'outputProjection',
-        title: 'Output Projection',
-        content: 'The final hidden state is projected to vocabulary size to produce logits - raw scores for every possible next token.',
-        position: 'right'
-    },
-    {
-        target: '#output-box',
-        componentKey: 'output',
-        title: 'Token Generation',
-        content: 'A probability distribution over all tokens determines the next word. This process repeats to generate text one token at a time.',
-        position: 'right'
-    },
-    {
+        section: 'architecture',
         target: '#ffn-block .toggle-indicator',
         componentKey: 'moe',
-        title: 'Mixture of Experts',
-        content: 'Some models use MOE layers instead of standard FFN. A router selects which "expert" networks to use for each token, allowing massive scale with efficient computation.',
+        title: 'Architecture: MOE Toggle',
+        content: 'This toggle previews how sparse expert routing can replace dense FFN computation.',
         position: 'right',
         action: 'showMOE'
     },
     {
-        target: '.demo-btn[data-demo="attention"]',
+        section: 'training',
+        target: '#training-data',
+        componentKey: 'trainingData',
+        title: 'Training: Data',
+        content: 'Training starts with curated corpora, then dataset prep builds token sequences for batches.',
+        position: 'right'
+    },
+    {
+        section: 'training',
+        target: '#loss-function',
+        componentKey: 'lossFunction',
+        title: 'Training: Loss',
+        content: 'Cross-entropy compares predicted distributions against targets and produces a scalar objective.',
+        position: 'right'
+    },
+    {
+        section: 'training',
+        target: '#preference-tuning',
+        componentKey: 'preferenceTuning',
+        title: 'Training: Preference Optimization',
+        content: 'Post-training methods (such as DPO/PPO) align behavior toward preferred responses.',
+        position: 'right'
+    },
+    {
+        section: 'inference',
+        target: '#prefill-phase',
+        componentKey: 'prefillPhase',
+        title: 'Inference: Prefill',
+        content: 'Prefill runs the full prompt in parallel and initializes the KV cache.',
+        position: 'right'
+    },
+    {
+        section: 'inference',
+        target: '#decode-loop',
+        componentKey: 'autoregressiveLoop',
+        title: 'Inference: Decode Loop',
+        content: 'Decode generates one token at a time: logits -> sampling -> stop check, then repeat.',
+        position: 'right'
+    },
+    {
+        section: 'inference',
+        target: '#kv-cache-box',
+        componentKey: 'kvCache',
+        title: 'Inference: KV Cache',
+        content: 'KV cache reuses prior key/value tensors to avoid recomputing attention history every step.',
+        position: 'right'
+    },
+    {
+        section: 'inference',
+        target: '.demo-btn[data-demo="generation"]',
         componentKey: null,
-        title: 'Try the Demos!',
-        content: 'Ready to see these concepts in action? Try the interactive Attention Demo to visualize how tokens attend to each other, or the MOE Demo to see expert routing!',
+        title: 'Try the New Demos',
+        content: 'Open the generation, sampling, and KV cache demos to explore inference behavior interactively.',
         position: 'left',
         isFinal: true
     }
@@ -92,21 +105,15 @@ class Tour {
         this.onStepChange = null;
         this.onComplete = null;
         this.onExit = null;
+        this.renderToken = 0;
     }
 
-    /**
-     * Initialize tour UI elements
-     */
     init() {
-        // Create overlay
         this.overlay = document.createElement('div');
         this.overlay.className = 'tour-overlay';
-        this.overlay.innerHTML = `
-            <div class="tour-spotlight"></div>
-        `;
+        this.overlay.innerHTML = '<div class="tour-spotlight"></div>';
         document.body.appendChild(this.overlay);
 
-        // Create tooltip
         this.tooltip = document.createElement('div');
         this.tooltip.className = 'tour-tooltip';
         this.tooltip.innerHTML = `
@@ -123,19 +130,20 @@ class Tour {
         `;
         document.body.appendChild(this.tooltip);
 
-        // Event listeners
         this.tooltip.querySelector('.tour-close').addEventListener('click', () => this.exit());
         this.tooltip.querySelector('.tour-prev').addEventListener('click', () => this.prev());
         this.tooltip.querySelector('.tour-next').addEventListener('click', () => this.next());
-        this.overlay.addEventListener('click', (e) => {
-            if (e.target === this.overlay) this.exit();
+
+        this.overlay.addEventListener('click', (event) => {
+            if (event.target === this.overlay) {
+                this.exit();
+            }
         });
 
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', (event) => {
             if (!this.active) return;
 
-            switch (e.key) {
+            switch (event.key) {
                 case 'ArrowRight':
                 case 'Enter':
                     this.next();
@@ -146,100 +154,98 @@ class Tour {
                 case 'Escape':
                     this.exit();
                     break;
+                default:
+                    break;
             }
         });
     }
 
-    /**
-     * Start the tour
-     */
     start() {
         this.active = true;
         this.currentStep = 0;
+
+        window.dispatchEvent(new CustomEvent('tour:ensureHome'));
+
         this.overlay.classList.add('active');
         this.tooltip.classList.add('active');
         this.showStep(0);
     }
 
-    /**
-     * Show a specific step
-     */
     showStep(index) {
         if (index < 0 || index >= this.steps.length) return;
 
         this.currentStep = index;
         const step = this.steps[index];
 
-        // Update tooltip content
         this.tooltip.querySelector('.tour-title').textContent = step.title;
         this.tooltip.querySelector('.tour-content').textContent = step.content;
         this.tooltip.querySelector('.tour-progress').textContent = `Step ${index + 1} of ${this.steps.length}`;
 
-        // Update buttons
         const prevBtn = this.tooltip.querySelector('.tour-prev');
         const nextBtn = this.tooltip.querySelector('.tour-next');
         prevBtn.style.display = index === 0 ? 'none' : 'inline-block';
         nextBtn.textContent = step.isFinal ? 'Finish' : 'Next';
 
-        // Position spotlight and tooltip
-        this.positionElements(step);
-
-        // Highlight component in diagram
-        if (step.componentKey) {
-            highlightComponent(step.componentKey);
-        } else {
-            clearHighlight();
+        if (step.section) {
+            window.dispatchEvent(new CustomEvent('tour:switchSection', {
+                detail: { section: step.section }
+            }));
         }
 
-        // Execute any step action
-        if (step.action === 'showMOE') {
-            // Dispatch event to toggle MOE view
-            window.dispatchEvent(new CustomEvent('tour:showMOE'));
-        }
+        const token = ++this.renderToken;
 
-        // Callback
-        if (this.onStepChange) {
-            this.onStepChange(index, step);
-        }
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (!this.active || token !== this.renderToken) return;
+
+                this.positionElements(step);
+
+                if (step.componentKey) {
+                    window.dispatchEvent(new CustomEvent('tour:highlight', {
+                        detail: { componentKey: step.componentKey }
+                    }));
+                } else {
+                    window.dispatchEvent(new CustomEvent('tour:clearHighlight'));
+                }
+
+                if (step.action === 'showMOE') {
+                    window.dispatchEvent(new CustomEvent('tour:showMOE'));
+                }
+
+                if (this.onStepChange) {
+                    this.onStepChange(index, step);
+                }
+            });
+        });
     }
 
-    /**
-     * Position spotlight and tooltip around target
-     */
     positionElements(step) {
         const target = document.querySelector(step.target);
+        const spotlight = this.overlay.querySelector('.tour-spotlight');
 
         if (!target) {
-            // If target not found, center the tooltip
             this.tooltip.style.left = '50%';
             this.tooltip.style.top = '50%';
             this.tooltip.style.transform = 'translate(-50%, -50%)';
-            this.overlay.querySelector('.tour-spotlight').style.display = 'none';
+            spotlight.style.display = 'none';
             return;
         }
 
         const rect = target.getBoundingClientRect();
-        const spotlight = this.overlay.querySelector('.tour-spotlight');
 
-        // Position spotlight
         spotlight.style.display = 'block';
         spotlight.style.left = `${rect.left - 10}px`;
         spotlight.style.top = `${rect.top - 10}px`;
         spotlight.style.width = `${rect.width + 20}px`;
         spotlight.style.height = `${rect.height + 20}px`;
 
-        // Position tooltip
         const tooltipRect = this.tooltip.getBoundingClientRect();
-        let left, top;
+        let left = rect.right + 20;
+        let top = rect.top + rect.height / 2 - tooltipRect.height / 2;
 
         switch (step.position) {
-            case 'right':
-                left = rect.right + 20;
-                top = rect.top + rect.height / 2 - tooltipRect.height / 2;
-                break;
             case 'left':
                 left = rect.left - tooltipRect.width - 20;
-                top = rect.top + rect.height / 2 - tooltipRect.height / 2;
                 break;
             case 'bottom':
                 left = rect.left + rect.width / 2 - tooltipRect.width / 2;
@@ -250,11 +256,9 @@ class Tour {
                 top = rect.top - tooltipRect.height - 20;
                 break;
             default:
-                left = rect.right + 20;
-                top = rect.top;
+                break;
         }
 
-        // Keep tooltip in viewport
         const padding = 20;
         left = Math.max(padding, Math.min(left, window.innerWidth - tooltipRect.width - padding));
         top = Math.max(padding, Math.min(top, window.innerHeight - tooltipRect.height - padding));
@@ -264,77 +268,55 @@ class Tour {
         this.tooltip.style.transform = 'none';
     }
 
-    /**
-     * Go to next step
-     */
     next() {
         if (this.currentStep >= this.steps.length - 1) {
             this.complete();
-        } else {
-            this.showStep(this.currentStep + 1);
+            return;
         }
+
+        this.showStep(this.currentStep + 1);
     }
 
-    /**
-     * Go to previous step
-     */
     prev() {
-        if (this.currentStep > 0) {
-            this.showStep(this.currentStep - 1);
-        }
+        if (this.currentStep <= 0) return;
+        this.showStep(this.currentStep - 1);
     }
 
-    /**
-     * Jump to specific step
-     */
     goToStep(index) {
         this.showStep(index);
     }
 
-    /**
-     * Complete the tour
-     */
     complete() {
         this.active = false;
         this.overlay.classList.remove('active');
         this.tooltip.classList.remove('active');
-        clearHighlight();
+        window.dispatchEvent(new CustomEvent('tour:clearHighlight'));
 
         if (this.onComplete) {
             this.onComplete();
         }
     }
 
-    /**
-     * Exit the tour early
-     */
     exit() {
         this.active = false;
         this.overlay.classList.remove('active');
         this.tooltip.classList.remove('active');
-        clearHighlight();
+        window.dispatchEvent(new CustomEvent('tour:clearHighlight'));
 
         if (this.onExit) {
             this.onExit();
         }
     }
 
-    /**
-     * Check if tour is active
-     */
     isActive() {
         return this.active;
     }
 
-    /**
-     * Get current step
-     */
     getCurrentStep() {
         return this.currentStep;
     }
 }
 
-// Singleton instance
 const tour = new Tour();
 
 export default tour;

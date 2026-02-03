@@ -4,12 +4,12 @@ An interactive educational web application that explains how modern decoder-only
 
 ## Features
 
-- **Interactive Transformer Diagram**: Click on any component to learn how it works
-- **Guided Tour**: Step-by-step walkthrough of the entire architecture
-- **Attention Demo**: Visualize self-attention patterns with your own text
-- **MOE Demo**: See how Mixture of Experts routing works
-- **Sampling Demo**: Compare temperature, top-k, and top-p decoding behavior
-- **KV Cache Demo**: Visualize why cache reuse speeds up autoregressive generation
+- **Three Learning Sections**: Architecture, Training, and Inference tabs in Home view
+- **Section Diagrams**: Clickable diagrams with beginner + technical explanations
+- **Guided Tour**: Step-by-step walkthrough across all three sections
+- **Architecture Demos**: Attention, MOE routing, and token flow animation
+- **Training Demos**: Gradient descent playground and loss/perplexity learning loop
+- **Inference Demos**: Sampling controls, KV cache simulation, autoregressive generation loop
 - **Glossary**: Searchable reference of key terms
 - **Responsive Design**: Works on desktop, tablet, and mobile
 
@@ -43,13 +43,19 @@ If you use VS Code, install the "Live Server" extension and click "Go Live" in t
 langsplain/
 ├── index.html          # Main HTML structure
 ├── style.css           # All styles (dark mode, responsive)
-├── app.js              # Main application logic
+├── app.js              # Main app logic + section state management
 ├── modules/
-│   ├── diagram.js      # SVG diagram with D3.js
+│   ├── diagram.js      # Architecture diagram with D3.js
+│   ├── training-diagram.js   # Training loop diagram
+│   ├── inference-diagram.js  # Inference pipeline diagram
+│   ├── section-switcher.js   # Section tabs behavior
 │   ├── attention-demo.js   # Attention visualization
 │   ├── moe-demo.js     # MOE routing simulation
+│   ├── gradient-demo.js    # Gradient descent visualization
+│   ├── loss-demo.js        # Loss/perplexity training visualization
 │   ├── sampling-demo.js    # Sampling strategies visualization
 │   ├── kv-cache-demo.js    # KV cache visualization
+│   ├── generation-demo.js  # Autoregressive decode visualization
 │   ├── tour.js         # Guided tour system
 │   ├── tokenizer.js    # BPE-style tokenization
 │   └── math-utils.js   # Softmax, matrix operations
@@ -77,16 +83,9 @@ The demos use a simplified transformer for visualization:
 
 ### Key Concepts Covered
 
-1. **Tokenization** - How text becomes tokens
-2. **Embeddings** - Converting tokens to vectors
-3. **Positional Encoding** - Adding position information
-4. **Self-Attention** - Q, K, V and attention weights
-5. **Multi-Head Attention** - Parallel attention patterns
-6. **Feed-Forward Networks** - Per-token processing
-7. **Residual Connections** - Skip connections
-8. **Layer Normalization** - Stabilizing activations
-9. **Mixture of Experts** - Sparse computation
-10. **Output Generation** - Producing next tokens
+1. **Architecture** - tokenization, embeddings, attention, FFN/MOE, output projection
+2. **Training** - data prep, cross-entropy loss, backpropagation, optimizer updates, alignment stages
+3. **Inference** - prefill vs decode, KV cache reuse, sampling policies, stop conditions, detokenization
 
 ## Deployment
 
