@@ -242,8 +242,10 @@ class Tour {
 
     positionElements(step) {
         const spotlight = this.overlay.querySelector('.tour-spotlight');
+        const isCenterStep = step.position === 'center';
+        this.tooltip.classList.toggle('tour-tooltip-center', isCenterStep);
 
-        if (step.position === 'center') {
+        if (isCenterStep) {
             this.tooltip.style.left = '50%';
             this.tooltip.style.top = '50%';
             this.tooltip.style.transform = 'translate(-50%, -50%)';

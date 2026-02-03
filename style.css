@@ -1286,6 +1286,13 @@ button {
     visibility: visible;
 }
 
+.tour-tooltip.tour-tooltip-center {
+    left: 50% !important;
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%) !important;
+}
+
 .tour-close {
     position: absolute;
     top: 12px;
