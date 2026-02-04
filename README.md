@@ -1,5 +1,7 @@
 # Langsplain
 
+[![Test](https://github.com/adamwesterby/langsplain/actions/workflows/tests.yml/badge.svg)](https://github.com/adamwesterby/langsplain/actions/workflows/tests.yml)
+
 An interactive educational web application that explains how modern decoder-only transformer LLMs work, with visual diagrams and hands-on demos.
 
 ## Features
@@ -37,13 +39,47 @@ Then open http://localhost:8000 in your browser.
 
 If you use VS Code, install the "Live Server" extension and click "Go Live" in the status bar.
 
+## Automated Testing
+
+Install test dependencies once:
+
+```bash
+npm install
+```
+
+Run all tests:
+
+```bash
+npm test
+```
+
+Run only unit/DOM tests (Vitest):
+
+```bash
+npm run test:unit
+```
+
+Run only browser smoke tests (Playwright):
+
+```bash
+npm run test:e2e
+```
+
+Test strategy:
+- **Unit/DOM tests** (Vitest + jsdom): deterministic logic and UI controller behavior (`math-utils`, `tokenizer`, section switching).
+- **E2E smoke tests** (Playwright, Chromium): high-value user flows (navigation, section switching, demos/modals, guided tour, mobile viewport).
+
 ## Project Structure
 
 ```
 langsplain/
+├── .github/workflows/tests.yml # CI test workflow
 ├── index.html          # Main HTML structure
 ├── style.css           # All styles (dark mode, responsive)
 ├── app.js              # Main app logic + section state management
+├── package.json        # Test scripts and dev dependencies
+├── playwright.config.js # Playwright smoke test config
+├── vitest.config.js    # Vitest unit/DOM test config
 ├── modules/
 │   ├── diagram.js      # Architecture diagram with D3.js
 │   ├── training-diagram.js   # Training loop diagram
@@ -59,6 +95,10 @@ langsplain/
 │   ├── tour.js         # Guided tour system
 │   ├── tokenizer.js    # BPE-style tokenization
 │   └── math-utils.js   # Softmax, matrix operations
+├── tests/
+│   ├── unit/           # Unit tests for deterministic logic
+│   ├── dom/            # DOM tests for section state/ARIA
+│   └── e2e/            # Playwright smoke tests
 └── README.md
 ```
 
