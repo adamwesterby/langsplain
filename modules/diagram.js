@@ -242,7 +242,6 @@ function getArchitectureLayout(width) {
 function renderDiagram(layout) {
     renderComponents(layout);
     renderArrows(layout);
-    renderLayerIndicator(layout);
 }
 
 export function destroyDiagram() {
@@ -430,23 +429,6 @@ function renderArrows(layout) {
             .attr('stroke-width', 2)
             .attr('marker-end', 'url(#arrowhead)');
     });
-}
-
-/**
- * Render layer stacking indicator
- */
-function renderLayerIndicator(layout) {
-    const { centerX } = layout;
-
-    // "... more layers ..." text
-    svg.append('text')
-        .attr('x', centerX)
-        .attr('y', COMPONENTS.transformerBlock.y + COMPONENTS.transformerBlock.height + 35)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#606060')
-        .attr('font-size', '11px')
-        .attr('font-style', 'italic')
-        .text('... stacked layers ...');
 }
 
 /**
